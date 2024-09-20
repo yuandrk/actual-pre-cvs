@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CSV Processor</title>
+    <!-- Bootstrap CSS CDN -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">CSV Processor</h1>
+        <form method="post" enctype="multipart/form-data" class="mt-4">
+            <div class="form-group">
+                <label for="file">Select CSV File:</label>
+                <input type="file" name="file" id="file" accept=".csv" class="form-control-file" required>
+            </div>
+            <div class="form-group">
+                <label for="start_date">Start Date:</label>
+                <input type="date" name="start_date" id="start_date" class="form-control" required>
+                <small class="form-text text-muted">Format: YYYY-MM-DD</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Process and Download</button>
+        </form>
+    </div>
+
+    <!-- Optional JavaScript and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+</body>
+</html>
