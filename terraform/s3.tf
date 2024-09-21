@@ -1,14 +1,17 @@
-# s3.tf
-
 # Create the S3 bucket
 resource "aws_s3_bucket" "bucket_website" {
   bucket = var.s3_bucket_name
+
+  # Optionally, you can add tags or other configurations here
+  tags = {
+    Environment = "Production"
+  }
 }
 
-# Set the ACL to public-read
+# Set the ACL to private
 resource "aws_s3_bucket_acl" "bucket_acl" {
   bucket = aws_s3_bucket.bucket_website.id
-  acl    = "public-read"
+  acl    = "private"
 }
 
 # Set ownership controls
@@ -24,13 +27,13 @@ resource "aws_s3_bucket_ownership_controls" "bucket_ownership_controls" {
 resource "aws_s3_bucket_public_access_block" "bucket_public_access_block" {
   bucket = aws_s3_bucket.bucket_website.id
 
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
 
-# Configure website hosting
+# Configure website hosting (optional since we'll use CloudFront)
 resource "aws_s3_bucket_website_configuration" "website_configuration" {
   bucket = aws_s3_bucket.bucket_website.id
 
@@ -45,31 +48,7 @@ resource "aws_s3_object" "upload_html" {
   key          = var.html_file_path
   source       = "${path.module}/../templates/${var.html_file_path}"
   content_type = "text/html"
-  acl          = "public-read"
+  acl          = "private"
 
   depends_on = [aws_s3_bucket_acl.bucket_acl]
-}
-
-# Define the bucket policy to allow public read access
-resource "aws_s3_bucket_policy" "bucket_policy" {
-  bucket = aws_s3_bucket.bucket_website.id
-  policy = data.aws_iam_policy_document.bucket_policy.json
-}
-
-data "aws_iam_policy_document" "bucket_policy" {
-  statement {
-    sid    = "PublicReadGetObject"
-    effect = "Allow"
-
-    principals {
-      type        = "*"
-      identifiers = ["*"]
-    }
-
-    actions = ["s3:GetObject"]
-
-    resources = [
-      "${aws_s3_bucket.bucket_website.arn}/*",
-    ]
-  }
 }

@@ -18,3 +18,13 @@ variable "domain_name" {
   description = "Domain name for the website (e.g., 'yuandrk.net.')"
   type        = string
 }
+
+variable "subdomain_name" {
+  description = "Subdomain for the website (e.g., 'csv')"
+  type        = string
+}
+
+variable "acm_certificate_domain" {
+  description = "Domain name for the ACM certificate (e.g., 'csv.yuandrk.net')"
+  type        = string
+}
