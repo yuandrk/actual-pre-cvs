@@ -1,3 +1,4 @@
 output "website_url" {
-  value = local.s3_website_endpoint
+  description = "URL of the S3 static website"
+  value       = "http://${local.s3_website_endpoint}"
 }
