@@ -1,13 +1,13 @@
 resource "aws_s3_bucket" "bucket-1" {
-  bucket = "www.${var.s3_bucket_name}"
+  bucket = var.s3_bucket_name
 }
 data "aws_s3_bucket" "selected-bucket" {
   bucket = aws_s3_bucket.bucket-1.bucket
 }
 
 resource "aws_s3_bucket_acl" "bucket-acl" {
-  bucket = data.aws_s3_bucket.selected-bucket.id
-  acl    = "public-read"
+  bucket     = data.aws_s3_bucket.selected-bucket.id
+  acl        = "public-read"
   depends_on = [aws_s3_bucket_ownership_controls.s3_bucket_acl_ownership]
 }
 
@@ -29,19 +29,20 @@ resource "aws_s3_bucket_public_access_block" "example" {
 }
 
 resource "aws_s3_bucket_policy" "bucket-policy" {
-  bucket = data.aws_s3_bucket.selected-bucket.id
+  bucket = aws_s3_bucket.bucket-1.id
   policy = data.aws_iam_policy_document.iam-policy-1.json
 }
+
 data "aws_iam_policy_document" "iam-policy-1" {
   statement {
-    sid    = "AllowPublicRead"
-    effect = "Allow"
-resources = [
-      "arn:aws:s3:::www.${var.s3_bucket_name}",
-      "arn:aws:s3:::www.${var.s3_bucket_name}/*",
+    sid     = "AllowPublicRead"
+    effect  = "Allow"
+    actions = ["s3:GetObject"]
+    resources = [
+      "arn:aws:s3:::${var.s3_bucket_name}",
+      "arn:aws:s3:::${var.s3_bucket_name}/*",
     ]
-actions = ["S3:GetObject"]
-principals {
+    principals {
       type        = "*"
       identifiers = ["*"]
     }
@@ -50,21 +51,20 @@ principals {
   depends_on = [aws_s3_bucket_public_access_block.example]
 }
 
-
 resource "aws_s3_bucket_website_configuration" "website-config" {
   bucket = data.aws_s3_bucket.selected-bucket.bucket
-index_document {
+  index_document {
     suffix = var.html_file_path
   }
 }
 
 resource "aws_s3_object" "upload_html" {
   bucket = aws_s3_bucket.bucket-1.id
-  key    = var.html_file_path  # "upload.html"
+  key    = var.html_file_path # "upload.html"
 
-  source = "${path.module}/../templates/${var.html_file_path}"
+  source       = "${path.module}/../templates/${var.html_file_path}"
   content_type = "text/html"
-  acl    = "public-read"
+  acl          = "public-read"
 
   depends_on = [aws_s3_bucket_acl.bucket-acl]
 }

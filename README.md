@@ -43,16 +43,20 @@ This is a simple web application built with Flask that allows users to upload CS
 
 ```
 csv-processor/
-│
-├── app.py
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
+├── LICENSE
 ├── README.md
-├── templates/
+├── app.py
+├── docker-compose.yml
+├── dockerfile
+├── lambda.zip
+├── requirements.txt
+├── templates
 │   └── upload.html
-├── uploads/
-└── outputs/
+└── terraform
+    ├── output.tf
+    ├── provider.tf
+    ├── s3.tf
+    └── variable.tf
 ```
 
 ## Development
