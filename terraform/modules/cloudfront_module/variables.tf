@@ -3,8 +3,8 @@ variable "s3_bucket_name" {
   type        = string
 }
 
-variable "acm_certificate_domain" {
-  description = "Domain name for the ACM certificate"
+variable "acm_certificate_arn" {
+  description = "ARN of the ACM certificate"
   type        = string
 }
 
@@ -19,7 +19,12 @@ variable "domain_name" {
 }
 
 variable "aws_region" {
-  description = "AWS region for the resources"
+  description = "AWS region where the S3 bucket is located"
+  type        = string
+}
+
+variable "cloudfront_oai_id" {
+  description = "ID of the CloudFront Origin Access Identity"
   type        = string
 }
 
