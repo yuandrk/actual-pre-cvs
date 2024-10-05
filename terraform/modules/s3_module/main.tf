@@ -27,7 +27,6 @@ resource "aws_s3_object" "upload_html" {
   key    = "upload.html"
   source = "./../templates/upload.html"
   acl    = "private"
-
   content_type = "text/html"
 }
 
