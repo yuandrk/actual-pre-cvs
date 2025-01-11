@@ -222,8 +222,8 @@ If you encounter `Access Denied` errors when accessing your website, ensure:
 
 ## Additional Resources
 
-- **Terraform Documentation** : [https://www.terraform.io/docs]()
+- [Terraform Documentation](https://www.terraform.io/docs)
 
-- **AWS Provider Documentation** : [https://registry.terraform.io/providers/hashicorp/aws/latest/docs]()
+- [AWS Provider Documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
 
-- **Terraform Best Practices** : [https://www.terraform-best-practices.com](https://www.terraform-best-practices.com/)
+- [Terraform Best Practices](https://www.terraform-best-practices.com)

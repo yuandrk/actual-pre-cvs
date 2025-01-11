@@ -6,7 +6,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   enabled             = true
   default_root_object = "upload.html"
 
-  aliases = ["${var.subdomain_name}.${var.domain_name}"]
+  aliases = var.domain_names
 
   origin {
     domain_name = "${var.s3_bucket_name}.s3.${var.aws_region}.amazonaws.com"

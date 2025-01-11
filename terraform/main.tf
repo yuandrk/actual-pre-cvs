@@ -3,12 +3,10 @@ module "cloudfront" {
   source              = "./modules/cloudfront_module"
   s3_bucket_name      = var.s3_bucket_name
   acm_certificate_arn = aws_acm_certificate_validation.cert_validation.certificate_arn
-  subdomain_name      = var.subdomain_name
-  domain_name         = var.domain_name
+  domain_names        = [local.full_domain_name]
   aws_region          = var.aws_region
   environment         = var.environment
 }
-
 
 # Adjust the S3 module invocation
 module "s3" {

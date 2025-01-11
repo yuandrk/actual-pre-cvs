@@ -8,14 +8,9 @@ variable "acm_certificate_arn" {
   type        = string
 }
 
-variable "subdomain_name" {
-  description = "Subdomain for the website"
-  type        = string
-}
-
-variable "domain_name" {
-  description = "Root domain name"
-  type        = string
+variable "domain_names" {
+  description = "List of domain names for the CloudFront distribution"
+  type        = list(string)
 }
 
 variable "aws_region" {

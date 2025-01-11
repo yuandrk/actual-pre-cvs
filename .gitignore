@@ -30,3 +30,16 @@ crash.*.log
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+.DS_Store
+terraform/directory_structure.md
