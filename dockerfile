@@ -12,6 +12,9 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+# Create a non-root user first
+RUN adduser --disabled-password --gecos "" appuser
+
 # Create log directory and set permissions
 RUN mkdir -p /var/log/app && \
     chown -R appuser:appuser /var/log/app
@@ -20,8 +23,10 @@ RUN mkdir -p /var/log/app && \
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Create a non-root user and switch to it
-RUN useradd -m appuser && chown -R appuser:appuser /app
+# Set ownership of the application directory
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
 USER appuser
 
 # Make port 5000 available to the world outside this container
