@@ -1,6 +1,14 @@
 # Use an official Python runtime as the base image
 FROM python:3.9-slim
 
+# Build-time arguments
+ARG VERSION=unknown
+
+# Set labels
+LABEL org.opencontainers.image.version=${VERSION} \
+      org.opencontainers.image.title="CSV Processor" \
+      org.opencontainers.image.description="A Flask application for processing CSV files"
+
 # Set the working directory in the container
 WORKDIR /app
 
@@ -44,7 +52,8 @@ ENV PYTHONUNBUFFERED=1 \
     DATE_FORMAT="%d %b %Y" \
     NUMERIC_COLUMNS="Paid out,Paid in,Balance" \
     SKIP_ROWS=3 \
-    DEBUG=False
+    DEBUG=False \
+    VERSION=${VERSION}
 
 # Run Gunicorn with proper settings and logging
 CMD ["sh", "-c", "gunicorn --bind $HOST:$PORT --workers $WORKERS --timeout 120 \
