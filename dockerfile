@@ -12,6 +12,10 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+# Create log directory and set permissions
+RUN mkdir -p /var/log/app && \
+    chown -R appuser:appuser /var/log/app
+
 # Upgrade pip and install the required packages
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
@@ -26,6 +30,12 @@ EXPOSE 5000
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV WORKERS=4
+ENV LOG_LEVEL=INFO
 
-# Run Gunicorn with proper settings
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:app"]
+# Run Gunicorn with proper settings and logging
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", \
+     "--access-logfile", "/var/log/app/access.log", \
+     "--error-logfile", "/var/log/app/error.log", \
+     "--log-level", "info", \
+     "--capture-output", \
+     "app:app"]

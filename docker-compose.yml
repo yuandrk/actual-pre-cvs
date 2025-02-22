@@ -6,14 +6,21 @@ services:
       - "9000:5000"
     volumes:
       - .:/app
+      - ./logs:/var/log/app
     environment:
       - PYTHONUNBUFFERED=1
       - WORKERS=4
+      - LOG_LEVEL=INFO
     deploy:
       resources:
         limits:
           cpus: '2'
           memory: 2G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/"]
       interval: 30s
