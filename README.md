@@ -12,11 +12,14 @@ This is a production-ready web application built with Flask and Gunicorn that al
 - Comprehensive logging system
 - Docker containerization
 - Resource management and monitoring
+- Automated CI/CD with GitHub Actions
+- Semantic versioning
 
 ## Prerequisites
 
 - Docker
 - Docker Compose (optional, but recommended)
+- GitHub Account (for CI/CD and container registry)
 
 ## Quick Start
 
@@ -28,15 +31,43 @@ This is a production-ready web application built with Flask and Gunicorn that al
 
 2. Build and run the Docker container:
    ```bash
-   docker-compose up --build
+   # Using the latest version
+   docker pull ghcr.io/yourusername/csv-processor:latest
+   docker run -p 9000:5000 ghcr.io/yourusername/csv-processor:latest
    ```
-   Or without Docker Compose:
+   
+   Or build locally:
    ```bash
-   docker build -t csv-processor .
-   docker run -p 9000:5000 csv-processor
+   docker-compose up --build
    ```
 
 3. Open a web browser and navigate to `http://localhost:9000`
+
+## Versioning
+
+This project uses semantic versioning. The current version is stored in the `VERSION` file.
+
+### Available Tags
+
+The following Docker image tags are available:
+- `latest`: Most recent version from the main branch
+- `x.y.z` (e.g., `1.0.0`): Specific version
+- `x.y` (e.g., `1.0`): Latest patch version of a minor release
+- `x` (e.g., `1`): Latest minor version of a major release
+- `sha-xxxxx`: Specific commit
+
+### Using Specific Versions
+
+```bash
+# Pull specific version
+docker pull ghcr.io/yourusername/csv-processor:1.0.0
+
+# Pull latest patch of 1.0
+docker pull ghcr.io/yourusername/csv-processor:1.0
+
+# Pull latest minor of version 1
+docker pull ghcr.io/yourusername/csv-processor:1
+```
 
 ## Usage
 
@@ -84,6 +115,7 @@ else:
 csv-processor/
 ├── LICENSE
 ├── README.md
+├── VERSION              # Current version number
 ├── app.py              # Main application file
 ├── docker-compose.yml  # Docker Compose configuration
 ├── Dockerfile         # Docker build instructions
@@ -91,6 +123,9 @@ csv-processor/
 ├── logs/             # Application logs directory
 │   ├── access.log    # Gunicorn access logs
 │   └── error.log     # Gunicorn error logs
+├── .github/          # GitHub Actions configuration
+│   └── workflows/
+│       └── docker-build.yml
 └── templates/
     └── upload.html   # Web interface template
 ```
@@ -102,6 +137,15 @@ csv-processor/
 - `WORKERS`: Number of Gunicorn workers (default: 4)
 - `LOG_LEVEL`: Logging level (default: INFO)
 - `PYTHONUNBUFFERED`: Python output buffering (default: 1)
+- `HOST`: Server host (default: 0.0.0.0)
+- `PORT`: Server port (default: 5000)
+- `ALLOWED_EXTENSIONS`: Allowed file types (default: csv)
+- `MAX_CONTENT_LENGTH`: Maximum file size (default: 16MB)
+- `UPLOAD_FOLDER`: Temporary upload directory (default: /tmp)
+- `DATE_FORMAT`: Date format for parsing (default: %d %b %Y)
+- `NUMERIC_COLUMNS`: Columns to convert to numeric (default: Paid out,Paid in,Balance)
+- `SKIP_ROWS`: Number of rows to skip in CSV (default: 3)
+- `DEBUG`: Debug mode (default: False)
 
 ### Resource Limits
 
@@ -131,6 +175,35 @@ The application implements a comprehensive logging system:
    - View logs: `docker-compose logs web`
    - Follow logs: `docker-compose logs -f web`
    - Log rotation: 10MB max size, keep 3 files
+
+## CI/CD Pipeline
+
+The project includes a GitHub Actions workflow for automated building and publishing of Docker images:
+
+1. **Triggers**:
+   - Push to main branch
+   - Push of version tags (v*.*.*)
+   - Pull requests to main
+
+2. **Features**:
+   - Automated builds
+   - Multi-tag support
+   - Version extraction
+   - Build caching
+   - Security scanning
+   - Container registry publishing
+
+3. **Publishing a New Version**:
+   ```bash
+   # Update VERSION file
+   echo "1.1.0" > VERSION
+   
+   # Commit and tag
+   git add VERSION
+   git commit -m "Bump version to 1.1.0"
+   git tag v1.1.0
+   git push && git push --tags
+   ```
 
 ## Development
 
@@ -187,3 +260,12 @@ The application includes comprehensive error handling:
 3. Commit your changes
 4. Push to the branch
 5. Create a new Pull Request
+
+### Version Updates
+
+When contributing, please follow these steps for version updates:
+
+1. Update the VERSION file
+2. Update relevant documentation
+3. Create a pull request
+4. After merge, create a new version tag
