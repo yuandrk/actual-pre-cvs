@@ -1,5 +1,5 @@
 import io
-from flask import Flask, request, render_template, send_file
+from flask import Flask, request, render_template, send_file, jsonify, make_response
 import pandas as pd
 from datetime import datetime
 from werkzeug.utils import secure_filename
@@ -72,6 +72,46 @@ def upload_file():
                 return 'Error processing file. Please check the file format and encoding.'
     return render_template('upload.html')
 
+@app.route('/api/process-csv', methods=['POST'])
+def process_csv_api():
+    try:
+        # Check if file is present in request
+        if 'file' not in request.files:
+            return make_response(jsonify({'error': 'No file provided'}), 400)
+        
+        file = request.files['file']
+        if file.filename == '':
+            return make_response(jsonify({'error': 'No file selected'}), 400)
+            
+        # Check if start_date is provided
+        start_date = request.form.get('start_date')
+        if not start_date:
+            return make_response(jsonify({'error': 'Start date is required'}), 400)
+            
+        # Validate file type
+        if not allowed_file(file.filename):
+            return make_response(jsonify({'error': 'Invalid file type. Only CSV files are allowed'}), 400)
+            
+        # Process the file
+        file_content = file.read()
+        df = parse_csv(file_content, start_date)
+        
+        if df is not None:
+            # Convert DataFrame to CSV
+            output = io.StringIO()
+            df.to_csv(output, index=False)
+            output.seek(0)
+            
+            # Create response with CSV file
+            response = make_response(output.getvalue())
+            response.headers['Content-Type'] = 'text/csv'
+            response.headers['Content-Disposition'] = f'attachment; filename=processed_{secure_filename(file.filename)}'
+            return response
+        else:
+            return make_response(jsonify({'error': 'Error processing file. Please check the file format and encoding'}), 400)
+            
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 500)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=9000, debug=True)
