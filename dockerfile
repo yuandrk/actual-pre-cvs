@@ -33,14 +33,23 @@ USER appuser
 EXPOSE 5000
 
 # Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV WORKERS=4
-ENV LOG_LEVEL=INFO
+ENV PYTHONUNBUFFERED=1 \
+    WORKERS=4 \
+    LOG_LEVEL=INFO \
+    HOST=0.0.0.0 \
+    PORT=5000 \
+    ALLOWED_EXTENSIONS=csv \
+    MAX_CONTENT_LENGTH=16777216 \
+    UPLOAD_FOLDER=/tmp \
+    DATE_FORMAT="%d %b %Y" \
+    NUMERIC_COLUMNS="Paid out,Paid in,Balance" \
+    SKIP_ROWS=3 \
+    DEBUG=False
 
 # Run Gunicorn with proper settings and logging
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", \
-     "--access-logfile", "/var/log/app/access.log", \
-     "--error-logfile", "/var/log/app/error.log", \
-     "--log-level", "info", \
-     "--capture-output", \
-     "app:app"]
+CMD ["sh", "-c", "gunicorn --bind $HOST:$PORT --workers $WORKERS --timeout 120 \
+     --access-logfile /var/log/app/access.log \
+     --error-logfile /var/log/app/error.log \
+     --log-level $LOG_LEVEL \
+     --capture-output \
+     app:app"]

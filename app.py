@@ -3,11 +3,12 @@ from flask import Flask, request, render_template, send_file, jsonify, make_resp
 import pandas as pd
 from datetime import datetime
 import logging
+import os
 from werkzeug.utils import secure_filename
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=os.getenv('LOG_LEVEL', 'INFO'),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
@@ -16,13 +17,17 @@ logger = logging.getLogger(__name__)
 # Create Flask application
 app = Flask(__name__)
 
-# Configure application
+# Configure application from environment variables
 app.config.update(
-    MAX_CONTENT_LENGTH=16 * 1024 * 1024,  # Limit file size to 16MB
-    UPLOAD_FOLDER='/tmp'  # Temporary folder for file uploads
+    MAX_CONTENT_LENGTH=int(os.getenv('MAX_CONTENT_LENGTH', 16 * 1024 * 1024)),
+    UPLOAD_FOLDER=os.getenv('UPLOAD_FOLDER', '/tmp'),
+    DATE_FORMAT=os.getenv('DATE_FORMAT', '%d %b %Y'),
+    NUMERIC_COLUMNS=os.getenv('NUMERIC_COLUMNS', 'Paid out,Paid in,Balance').split(','),
+    SKIP_ROWS=int(os.getenv('SKIP_ROWS', 3))
 )
 
-ALLOWED_EXTENSIONS = {'csv'}
+# Get allowed extensions from environment
+ALLOWED_EXTENSIONS = set(os.getenv('ALLOWED_EXTENSIONS', 'csv').split(','))
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -35,7 +40,9 @@ def parse_csv(file_content, start_date):
         
         for encoding in encodings:
             try:
-                df = pd.read_csv(io.BytesIO(file_content), encoding=encoding, skiprows=3)
+                df = pd.read_csv(io.BytesIO(file_content), 
+                               encoding=encoding, 
+                               skiprows=app.config['SKIP_ROWS'])
                 logger.info(f"Successfully read CSV with encoding: {encoding}")
                 break
             except UnicodeDecodeError:
@@ -47,7 +54,7 @@ def parse_csv(file_content, start_date):
             raise ValueError("Unable to decode the CSV file with the attempted encodings.")
         
         # Convert 'Date' column to datetime format
-        df['Date'] = pd.to_datetime(df['Date'], format='%d %b %Y')
+        df['Date'] = pd.to_datetime(df['Date'], format=app.config['DATE_FORMAT'])
         logger.debug("Successfully converted Date column to datetime format")
         
         # Filter the DataFrame to only include rows on or after the start date
@@ -57,7 +64,7 @@ def parse_csv(file_content, start_date):
         logger.info(f"Filtered DataFrame from {original_rows} to {filtered_rows} rows based on start date: {start_date}")
         
         # Remove the pound sign and convert columns to numeric
-        for col in ['Paid out', 'Paid in', 'Balance']:
+        for col in app.config['NUMERIC_COLUMNS']:
             df[col] = pd.to_numeric(df[col].str.replace('£', '', regex=True))
         logger.debug("Successfully converted monetary columns to numeric format")
         
@@ -164,4 +171,8 @@ def create_app():
 # This allows direct running for development, but won't be used by Gunicorn
 if __name__ == '__main__':
     logger.warning("Running in development mode. Use Gunicorn for production!")
-    app.run(host='0.0.0.0', port=9000, debug=False)
+    app.run(
+        host=os.getenv('HOST', '0.0.0.0'),
+        port=int(os.getenv('PORT', 9000)),
+        debug=os.getenv('DEBUG', 'False').lower() == 'true'
+    )

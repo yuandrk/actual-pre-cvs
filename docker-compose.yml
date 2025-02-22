@@ -3,14 +3,23 @@ services:
   web:
     build: .
     ports:
-      - "9000:5000"
+      - "${PORT:-9000}:${PORT:-5000}"
     volumes:
       - .:/app
       - ./logs:/var/log/app
     environment:
       - PYTHONUNBUFFERED=1
-      - WORKERS=4
-      - LOG_LEVEL=INFO
+      - WORKERS=${WORKERS:-4}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - HOST=${HOST:-0.0.0.0}
+      - PORT=${PORT:-5000}
+      - ALLOWED_EXTENSIONS=${ALLOWED_EXTENSIONS:-csv}
+      - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-16777216}
+      - UPLOAD_FOLDER=${UPLOAD_FOLDER:-/tmp}
+      - DATE_FORMAT=${DATE_FORMAT:-%d %b %Y}
+      - NUMERIC_COLUMNS=${NUMERIC_COLUMNS:-Paid out,Paid in,Balance}
+      - SKIP_ROWS=${SKIP_ROWS:-3}
+      - DEBUG=${DEBUG:-False}
     deploy:
       resources:
         limits:
@@ -22,7 +31,7 @@ services:
         max-size: "10m"
         max-file: "3"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      test: ["CMD", "curl", "-f", "http://${HOST:-0.0.0.0}:${PORT:-5000}/"]
       interval: 30s
       timeout: 10s
       retries: 3
