@@ -4,7 +4,14 @@ import pandas as pd
 from datetime import datetime
 from werkzeug.utils import secure_filename
 
+# Create Flask application
 app = Flask(__name__)
+
+# Configure application
+app.config.update(
+    MAX_CONTENT_LENGTH=16 * 1024 * 1024,  # Limit file size to 16MB
+    UPLOAD_FOLDER='/tmp'  # Temporary folder for file uploads
+)
 
 ALLOWED_EXTENSIONS = {'csv'}
 
@@ -113,5 +120,11 @@ def process_csv_api():
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
 
+# Remove the direct run statement and replace with proper app factory pattern
+def create_app():
+    return app
+
+# This allows direct running for development, but won't be used by Gunicorn
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=9000, debug=True)
+    print("Warning: Running in development mode. Use Gunicorn for production!")
+    app.run(host='0.0.0.0', port=9000, debug=False)

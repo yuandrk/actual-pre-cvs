@@ -16,11 +16,16 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
+# Create a non-root user and switch to it
+RUN useradd -m appuser && chown -R appuser:appuser /app
+USER appuser
+
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
 
-# Define environment variable
-ENV FLASK_APP=app.py
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV WORKERS=4
 
-# Run app.py when the container launches
-CMD ["flask", "run", "--host", "0.0.0.0"]
+# Run Gunicorn with proper settings
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:app"]

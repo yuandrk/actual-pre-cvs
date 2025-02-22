@@ -7,4 +7,15 @@ services:
     volumes:
       - .:/app
     environment:
-      - FLASK_ENV=development
+      - PYTHONUNBUFFERED=1
+      - WORKERS=4
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
