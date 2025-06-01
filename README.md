@@ -7,6 +7,7 @@ This is a production-ready web application built with Flask and Gunicorn that al
 - Upload CSV files through web interface or API
 - Specify a start date for processing
 - Download processed CSV files
+- Merge multiple CSV files into a single dataset
 - RESTful API endpoint for programmatic access
 - Production-grade WSGI server (Gunicorn)
 - Comprehensive logging system
@@ -73,9 +74,12 @@ docker pull ghcr.io/yourusername/csv-processor:1
 
 ### Web Interface
 
-1. Upload a CSV file using the web interface
+1. Upload one or more CSV files using the web interface
 2. Specify the start date for processing
-3. Click "Process and Download" to receive the processed file
+3. Select processing option:
+   - **Parse and Filter**: Process a single file and filter by start date
+   - **Parse and Merge**: Merge multiple files into a single dataset (requires multiple file selection)
+4. Click "Process and Download" to receive the processed file
 
 ### API Endpoint
 
@@ -84,15 +88,23 @@ The application provides a RESTful API endpoint for programmatic access:
 **POST /api/process-csv**
 - Content-Type: `multipart/form-data`
 - Parameters:
-  - `file`: CSV file to process (required)
+  - `file`: CSV file(s) to process (required, can be multiple for merging)
   - `start_date`: Start date in YYYY-MM-DD format (required)
+  - `process_option`: Processing option (optional, default: 'parse')
+    - `parse`: Process a single file and filter by start date
+    - `merge`: Merge multiple files into a single dataset
 
-Example using curl:
+Example using curl for single file processing:
 ```bash
 curl -X POST -F "file=@your_file.csv" -F "start_date=2024-01-01" http://localhost:9000/api/process-csv
 ```
 
-Example using Python:
+Example using curl for merging multiple files:
+```bash
+curl -X POST -F "file=@file1.csv" -F "file=@file2.csv" -F "file=@file3.csv" -F "start_date=2024-01-01" -F "process_option=merge" http://localhost:9000/api/process-csv
+```
+
+Example using Python for single file processing:
 ```python
 import requests
 
@@ -104,6 +116,30 @@ response = requests.post(url, files=files, data=data)
 
 if response.headers['Content-Type'] == 'text/csv':
     with open('processed_file.csv', 'wb') as f:
+        f.write(response.content)
+else:
+    print(response.json())  # Handle error response
+```
+
+Example using Python for merging multiple files:
+```python
+import requests
+
+url = 'http://localhost:9000/api/process-csv'
+files = [
+    ('file', open('file1.csv', 'rb')),
+    ('file', open('file2.csv', 'rb')),
+    ('file', open('file3.csv', 'rb'))
+]
+data = {
+    'start_date': '2024-01-01',
+    'process_option': 'merge'
+}
+
+response = requests.post(url, files=files, data=data)
+
+if response.headers['Content-Type'] == 'text/csv':
+    with open('merged_health_data.csv', 'wb') as f:
         f.write(response.content)
 else:
     print(response.json())  # Handle error response

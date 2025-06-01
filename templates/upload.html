@@ -11,13 +11,29 @@
         <h1 class="text-center">CSV Processor</h1>
         <form method="post" enctype="multipart/form-data" class="mt-4">
             <div class="form-group">
-                <label for="file">Select CSV File:</label>
-                <input type="file" name="file" id="file" accept=".csv" class="form-control-file" required>
+                <label for="file">Select CSV File(s):</label>
+                <input type="file" name="file" id="file" accept=".csv" class="form-control-file" multiple required>
+                <small class="form-text text-muted">Select multiple files to enable merge option</small>
             </div>
             <div class="form-group">
                 <label for="start_date">Start Date:</label>
                 <input type="date" name="start_date" id="start_date" class="form-control" required>
                 <small class="form-text text-muted">Format: YYYY-MM-DD</small>
+            </div>
+            <div class="form-group">
+                <label>Processing Options:</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="process_option" id="option_parse" value="parse" checked>
+                    <label class="form-check-label" for="option_parse">
+                        Parse and Filter
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="process_option" id="option_merge" value="merge">
+                    <label class="form-check-label" for="option_merge">
+                        Parse and Merge
+                    </label>
+                </div>
             </div>
             <button type="submit" class="btn btn-primary">Process and Download</button>
         </form>

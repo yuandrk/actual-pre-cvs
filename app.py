@@ -4,6 +4,7 @@ import pandas as pd
 from datetime import datetime
 import logging
 import os
+import glob
 from werkzeug.utils import secure_filename
 
 # Configure logging
@@ -80,16 +81,57 @@ def upload_file():
         if 'file' not in request.files:
             logger.warning("No file part in the request")
             return 'No file part'
-        file = request.files['file']
-        start_date = request.form['start_date']
         
-        if file.filename == '':
-            logger.warning("No selected file in the request")
-            return 'No selected file'
+        files = request.files.getlist('file')
+        start_date = request.form['start_date']
+        process_option = request.form.get('process_option', 'parse')
+        
+        if not files or files[0].filename == '':
+            logger.warning("No selected files in the request")
+            return 'No selected files'
+        
+        # Check for merge option with multiple files
+        if process_option == 'merge' and len(files) > 1:
+            logger.info(f"Processing merge request for {len(files)} files with start date: {start_date}")
             
+            df_list = []
+            for file in files:
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    logger.info(f"Processing file for merge: {filename}")
+                    file_content = file.read()
+                    
+                    df = parse_csv(file_content, start_date)
+                    if df is not None:
+                        df_list.append(df)
+                    else:
+                        logger.error(f"Failed to process file for merge: {filename}")
+            
+            if not df_list:
+                logger.error("No valid CSV files found for merging")
+                return 'No valid CSV files for merging. Please check file formats.'
+                
+            # Merge all dataframes
+            merged_df = pd.concat(df_list, ignore_index=True)
+            
+            # Convert DataFrame to CSV
+            output = io.StringIO()
+            merged_df.to_csv(output, index=False)
+            output.seek(0)
+            
+            logger.info("Successfully merged CSV files")
+            return send_file(
+                io.BytesIO(output.getvalue().encode('utf-8')),
+                as_attachment=True,
+                download_name="merged_health_data.csv",
+                mimetype='text/csv'
+            )
+        
+        # Process single file (or first file if multiple selected with parse option)
+        file = files[0]
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            logger.info(f"Processing file: {filename} with start date: {start_date}")
+            logger.info(f"Processing single file: {filename} with start date: {start_date}")
             file_content = file.read()
             
             df = parse_csv(file_content, start_date)
@@ -123,8 +165,8 @@ def process_csv_api():
             logger.warning("No file provided in API request")
             return make_response(jsonify({'error': 'No file provided'}), 400)
         
-        file = request.files['file']
-        if file.filename == '':
+        files = request.files.getlist('file')
+        if not files or files[0].filename == '':
             logger.warning("Empty filename in API request")
             return make_response(jsonify({'error': 'No file selected'}), 400)
             
@@ -134,6 +176,47 @@ def process_csv_api():
             logger.warning("No start date provided in API request")
             return make_response(jsonify({'error': 'Start date is required'}), 400)
             
+        # Check for merge option
+        process_option = request.form.get('process_option', 'parse')
+        
+        # Check for merge option with multiple files
+        if process_option == 'merge' and len(files) > 1:
+            logger.info(f"Processing API merge request for {len(files)} files with start date: {start_date}")
+            
+            df_list = []
+            for file in files:
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    logger.info(f"Processing file for API merge: {filename}")
+                    file_content = file.read()
+                    
+                    df = parse_csv(file_content, start_date)
+                    if df is not None:
+                        df_list.append(df)
+                    else:
+                        logger.error(f"Failed to process file for API merge: {filename}")
+            
+            if not df_list:
+                logger.error("No valid CSV files found for API merging")
+                return make_response(jsonify({'error': 'No valid CSV files for merging. Please check file formats'}), 400)
+                
+            # Merge all dataframes
+            merged_df = pd.concat(df_list, ignore_index=True)
+            
+            # Convert DataFrame to CSV
+            output = io.StringIO()
+            merged_df.to_csv(output, index=False)
+            output.seek(0)
+            
+            logger.info("Successfully merged CSV files in API request")
+            # Create response with CSV file
+            response = make_response(output.getvalue())
+            response.headers['Content-Type'] = 'text/csv'
+            response.headers['Content-Disposition'] = 'attachment; filename=merged_health_data.csv'
+            return response
+        
+        # Process single file
+        file = files[0]
         # Validate file type
         if not allowed_file(file.filename):
             logger.warning(f"Invalid file type in API request: {file.filename}")
