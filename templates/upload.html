@@ -5,41 +5,201 @@
     <title>CSV Processor</title>
     <!-- Bootstrap CSS CDN -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <style>
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .file-upload-wrapper {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        .custom-file-input:focus ~ .custom-file-label {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        .btn-process {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        .options-section {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .option-card {
+            flex: 1;
+            min-width: 280px;
+            margin: 0 10px 15px;
+        }
+        #dateSection {
+            transition: all 0.3s ease-in-out;
+        }
+        .file-feedback {
+            margin-top: 5px;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center">CSV Processor</h1>
-        <form method="post" enctype="multipart/form-data" class="mt-4">
-            <div class="form-group">
-                <label for="file">Select CSV File(s):</label>
-                <input type="file" name="file" id="file" accept=".csv" class="form-control-file" multiple required>
-                <small class="form-text text-muted">Select multiple files to enable merge option</small>
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h1 class="text-center mb-0">CSV Processor</h1>
             </div>
-            <div class="form-group">
-                <label for="start_date">Start Date:</label>
-                <input type="date" name="start_date" id="start_date" class="form-control" required>
-                <small class="form-text text-muted">Format: YYYY-MM-DD</small>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" class="mt-2" id="csvForm">
+                    <div class="card mb-4">
+                        <div class="card-header">File Selection</div>
+                        <div class="card-body">
+                            <div class="custom-file file-upload-wrapper">
+                                <input type="file" name="file" id="file" accept=".csv" class="custom-file-input" multiple required>
+                                <label class="custom-file-label" for="file">Choose file(s)</label>
+                            </div>
+                            <div class="file-feedback text-muted" id="fileInfo">No files selected</div>
+                        </div>
+                    </div>
+                    
+                    <div class="options-section">
+                        <div class="card option-card">
+                            <div class="card-header">Processing Options</div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" id="option_parse" name="process_option" value="parse" class="custom-control-input" checked>
+                                        <label class="custom-control-label" for="option_parse">
+                                            <strong>Parse and Filter</strong>
+                                        </label>
+                                        <div class="text-muted small mt-1 ml-4">Process individual file and filter by date</div>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" id="option_merge" name="process_option" value="merge" class="custom-control-input">
+                                        <label class="custom-control-label" for="option_merge">
+                                            <strong>Merge Files</strong>
+                                        </label>
+                                        <div class="text-muted small mt-1 ml-4">Combine multiple files into a single dataset</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card option-card">
+                            <div class="card-header">Output Format</div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" id="format_csv" name="output_format" value="csv" class="custom-control-input" checked>
+                                        <label class="custom-control-label" for="format_csv">
+                                            <strong>CSV</strong>
+                                        </label>
+                                        <div class="text-muted small mt-1 ml-4">Standard format for spreadsheet software</div>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" id="format_markdown" name="output_format" value="markdown" class="custom-control-input">
+                                        <label class="custom-control-label" for="format_markdown">
+                                            <strong>Markdown</strong>
+                                        </label>
+                                        <div class="text-muted small mt-1 ml-4">Format for easy display in documentation</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card" id="dateSection">
+                        <div class="card-header">Date Options</div>
+                        <div class="card-body">
+                            <div class="form-group mb-0">
+                                <label for="start_date">Start Date:</label>
+                                <input type="date" name="start_date" id="start_date" class="form-control">
+                                <small class="form-text text-muted" id="dateHelp">Format: YYYY-MM-DD (required for Parse and Filter)</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg btn-process">Process and Download</button>
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label>Processing Options:</label>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="process_option" id="option_parse" value="parse" checked>
-                    <label class="form-check-label" for="option_parse">
-                        Parse and Filter
-                    </label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="process_option" id="option_merge" value="merge">
-                    <label class="form-check-label" for="option_merge">
-                        Parse and Merge
-                    </label>
-                </div>
-            </div>
-            <button type="submit" class="btn btn-primary">Process and Download</button>
-        </form>
+        </div>
     </div>
 
-    <!-- Optional JavaScript and dependencies -->
+    <!-- JavaScript and dependencies -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    
+    <script>
+        // Update file selection label
+        document.getElementById('file').addEventListener('change', function() {
+            var fileInput = this;
+            var fileLabel = document.querySelector('.custom-file-label');
+            var fileInfo = document.getElementById('fileInfo');
+            
+            if (fileInput.files.length > 0) {
+                if (fileInput.files.length === 1) {
+                    fileLabel.textContent = fileInput.files[0].name;
+                    fileInfo.textContent = '1 file selected: ' + fileInput.files[0].name;
+                } else {
+                    fileLabel.textContent = fileInput.files.length + ' files selected';
+                    fileInfo.textContent = fileInput.files.length + ' files selected';
+                    
+                    // If multiple files are selected, suggest merge option
+                    if (fileInput.files.length > 1) {
+                        document.getElementById('option_merge').checked = true;
+                    }
+                }
+            } else {
+                fileLabel.textContent = 'Choose file(s)';
+                fileInfo.textContent = 'No files selected';
+            }
+        });
+        
+        // Toggle date field requirement based on processing option
+        document.querySelectorAll('input[name="process_option"]').forEach(function(radio) {
+            radio.addEventListener('change', function() {
+                var dateField = document.getElementById('start_date');
+                var dateHelp = document.getElementById('dateHelp');
+                
+                if (this.value === 'parse') {
+                    dateField.required = true;
+                    dateHelp.textContent = 'Format: YYYY-MM-DD (required for Parse and Filter)';
+                } else {
+                    dateField.required = false;
+                    dateHelp.textContent = 'Format: YYYY-MM-DD (optional for Merge)';
+                }
+            });
+        });
+        
+        // Form validation
+        document.getElementById('csvForm').addEventListener('submit', function(event) {
+            var fileInput = document.getElementById('file');
+            var processOption = document.querySelector('input[name="process_option"]:checked').value;
+            var dateField = document.getElementById('start_date');
+            
+            if (processOption === 'parse' && !dateField.value) {
+                event.preventDefault();
+                alert('Start date is required for Parse and Filter option.');
+                return false;
+            }
+            
+            if (processOption === 'merge' && fileInput.files.length < 2) {
+                event.preventDefault();
+                alert('Please select at least 2 files for Merge option.');
+                return false;
+            }
+            
+            return true;
+        });
+    </script>
 </body>
 </html>

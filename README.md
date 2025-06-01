@@ -8,6 +8,8 @@ This is a production-ready web application built with Flask and Gunicorn that al
 - Specify a start date for processing
 - Download processed CSV files
 - Merge multiple CSV files into a single dataset
+- Export data in CSV or Markdown format
+- Modern, intuitive user interface
 - RESTful API endpoint for programmatic access
 - Production-grade WSGI server (Gunicorn)
 - Comprehensive logging system
@@ -75,11 +77,20 @@ docker pull ghcr.io/yourusername/csv-processor:1
 ### Web Interface
 
 1. Upload one or more CSV files using the web interface
-2. Specify the start date for processing
-3. Select processing option:
-   - **Parse and Filter**: Process a single file and filter by start date
-   - **Parse and Merge**: Merge multiple files into a single dataset (requires multiple file selection)
-4. Click "Process and Download" to receive the processed file
+2. Select processing option:
+   - **Parse and Filter**: Process a single file and filter by start date (requires start date)
+   - **Merge Files**: Combine multiple files into a single dataset (start date optional)
+3. Choose output format:
+   - **CSV**: Standard format for spreadsheet software
+   - **Markdown**: Format for easy display in documentation
+4. Specify start date (required for Parse and Filter, optional for Merge)
+5. Click "Process and Download" to receive the processed file
+
+The interface includes smart features:
+- Automatically suggests merge option when multiple files are selected
+- Dynamic validation based on selected options
+- Clear visual feedback on file selection
+- Responsive design that works on desktop and mobile devices
 
 ### API Endpoint
 
@@ -89,19 +100,22 @@ The application provides a RESTful API endpoint for programmatic access:
 - Content-Type: `multipart/form-data`
 - Parameters:
   - `file`: CSV file(s) to process (required, can be multiple for merging)
-  - `start_date`: Start date in YYYY-MM-DD format (required)
+  - `start_date`: Start date in YYYY-MM-DD format (required for parse, optional for merge)
   - `process_option`: Processing option (optional, default: 'parse')
     - `parse`: Process a single file and filter by start date
     - `merge`: Merge multiple files into a single dataset
+  - `output_format`: Output format (optional, default: 'csv')
+    - `csv`: Standard CSV format
+    - `markdown`: Markdown table format
 
-Example using curl for single file processing:
+Example using curl for single file processing (CSV output):
 ```bash
 curl -X POST -F "file=@your_file.csv" -F "start_date=2024-01-01" http://localhost:9000/api/process-csv
 ```
 
-Example using curl for merging multiple files:
+Example using curl for merging multiple files with markdown output:
 ```bash
-curl -X POST -F "file=@file1.csv" -F "file=@file2.csv" -F "file=@file3.csv" -F "start_date=2024-01-01" -F "process_option=merge" http://localhost:9000/api/process-csv
+curl -X POST -F "file=@file1.csv" -F "file=@file2.csv" -F "file=@file3.csv" -F "process_option=merge" -F "output_format=markdown" http://localhost:9000/api/process-csv
 ```
 
 Example using Python for single file processing:
@@ -114,14 +128,19 @@ data = {'start_date': '2024-01-01'}
 
 response = requests.post(url, files=files, data=data)
 
-if response.headers['Content-Type'] == 'text/csv':
-    with open('processed_file.csv', 'wb') as f:
+# Check content type to determine file extension
+file_extension = 'csv'
+if response.headers['Content-Type'] == 'text/markdown':
+    file_extension = 'md'
+
+if response.headers['Content-Type'] in ['text/csv', 'text/markdown']:
+    with open(f'processed_file.{file_extension}', 'wb') as f:
         f.write(response.content)
 else:
     print(response.json())  # Handle error response
 ```
 
-Example using Python for merging multiple files:
+Example using Python for merging multiple files with markdown output:
 ```python
 import requests
 
@@ -132,14 +151,14 @@ files = [
     ('file', open('file3.csv', 'rb'))
 ]
 data = {
-    'start_date': '2024-01-01',
-    'process_option': 'merge'
+    'process_option': 'merge',
+    'output_format': 'markdown'
 }
 
 response = requests.post(url, files=files, data=data)
 
-if response.headers['Content-Type'] == 'text/csv':
-    with open('merged_health_data.csv', 'wb') as f:
+if response.headers['Content-Type'] == 'text/markdown':
+    with open('merged_health_data.md', 'wb') as f:
         f.write(response.content)
 else:
     print(response.json())  # Handle error response
