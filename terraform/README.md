@@ -104,7 +104,7 @@ Required Variables (`variable.tf`)
 
 ### Variable Definitions
 
-Define your variables in the `terraform.tfvars` file or pass them via command-line or environment variables.Example `terraform.tfvars`:**
+Define your variables in the `terraform.tfvars` file or pass them via command-line or environment variables. Example `terraform.tfvars`:
 
 ```hcl
 s3_bucket_name         = "your-bucket-name"
